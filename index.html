@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Интернет AI Чат</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #0d6efd;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    main {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .chat {
+      max-width: 800px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 80%;
+      line-height: 1.5;
+      animation: fade 0.3s ease-in-out;
+    }
+    .user {
+      background: #0d6efd;
+      color: white;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #e0e0e0;
+      align-self: flex-start;
+    }
+    footer {
+      display: flex;
+      padding: 1rem;
+      background: white;
+      border-top: 1px solid #ccc;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 16px;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    @keyframes fade {
+      from {opacity: 0; transform: translateY(5px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+
+<header>Интернет AI Чат</header>
+
+<main>
+  <div class="chat" id="chatBox">
+    <div class="message bot">Привет! Задай вопрос, и я найду ответ из интернета.</div>
+  </div>
+</main>
+
+<footer>
+  <input type="text" id="userInput" placeholder="Ваш вопрос..." />
+  <button onclick="sendMessage()">Отправить</button>
+</footer>
+
+<script>
+  const chatBox = document.getElementById("chatBox");
+  const input = document.getElementById("userInput");
+
+  function addMessage(text, sender) {
+    const msg = document.createElement("div");
+    msg.className = "message " + sender;
+    msg.textContent = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    addMessage("Ищу ответ...", "bot");
+
+    const response = await fetch("/ask", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await response.json();
+    const reply = data.reply || "Извините, не смог найти ответ.";
+
+    chatBox.removeChild(chatBox.lastChild); // удалить "Ищу ответ..."
+    addMessage(reply, "bot");
+  }
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") sendMessage();
+  });
+</script>
+
+</body>
+</html>
